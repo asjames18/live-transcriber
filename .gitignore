@@ -1,0 +1,48 @@
+# user data and personal content
+todo-data.json
+todo-data*.json
+email-cache.json
+reminder-state.json
+settings.json
+ai-settings.json
+scan-summary.json
+scan-summary-*.json
+smart-last.json
+smart-real.json
+undo-history.json
+winget-failures.json
+ai2-*.json
+recs-*.json
+pc_test*-result.json
+pc_test3-*.json
+
+# transcripts, notes, exports, logs, backups
+transcripts/
+notes/
+exports/
+backups/
+logs/
+*.log
+voice-tmp/
+
+# python, venv, models, caches, browser profile
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*$py.class
+models/
+cache/
+.window-profile/
+window-profile/
+
+# secrets
+.env
+.env.*
+!.env.example
+
+# node / build output
+node_modules/
+dist/
+build/
+*.egg-info/
