@@ -23,6 +23,14 @@ Transcription uses the GPU when CUDA is available (`large-v3-turbo`, float16) an
 - **Session history** — Browse past sessions, copy the transcript, and export Markdown or plain text.
 - **Keyboard shortcuts** — Start and stop, source toggles, export, notes and more. Press `?` in the app for the full list. A suggested desktop shortcut is `Ctrl+Alt+L`.
 
+## Screenshots
+
+![Live Transcriber in Meeting mode, with a live transcript and AI meeting notes](docs/screenshot-main-window.png)
+
+| AI meeting notes | Keyboard shortcuts |
+| --- | --- |
+| ![AI meeting notes with key points, decisions, action items and open questions](docs/screenshot-meeting-notes.png) | ![Keyboard shortcuts overlay (press ?)](docs/screenshot-keyboard-shortcuts.png) |
+
 ## Download
 
 The installer is the supported way to install Live Transcriber:
