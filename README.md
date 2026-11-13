@@ -5,7 +5,7 @@ On-device speech-to-text for this PC's audio and microphone, with an optional Me
 [![Latest release](https://img.shields.io/github/v/release/asjames18/live-transcriber)](https://github.com/asjames18/live-transcriber/releases/latest)
 ![Platform](https://img.shields.io/badge/Windows-10%20%2F%2011-0078D6?logo=windows&logoColor=white)
 ![Python](https://img.shields.io/badge/python-3.12%2B-3776AB?logo=python&logoColor=white)
-![License](https://img.shields.io/badge/license-not%20specified-lightgrey)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 ## Overview
 
@@ -158,9 +158,9 @@ Useful environment variables:
 
 **The window does not open.** Confirm Microsoft Edge or another browser is available. If port `48241` is already in use, set `TX_PORT` to a free port.
 
-## License and third-party notices
+## License
 
-This repository does not include a `LICENSE` file, so a license is not specified here.
+This project is licensed under the [MIT License](LICENSE). Copyright (c) 2026 Antonio James.
 
 Runtime packages are listed in `requirements.txt` (and optionally `requirements-gpu.txt`): faster-whisper, CTranslate2, PyAV, NumPy, Hugging Face Hub, tokenizers, ONNX Runtime and PyAudioWPatch, plus optional NVIDIA CUDA libraries. Whisper models are downloaded from Hugging Face (`Systran/faster-whisper-small.en` and, for GPU, `mobiuslabsgmbh/faster-whisper-large-v3-turbo`). Those projects are licensed by their authors; see each project for its terms. Optional meeting notes may call an OpenAI-compatible endpoint that you configure (OpenRouter by default). Python itself is licensed under the [PSF License](https://docs.python.org/3/license.html).
 
