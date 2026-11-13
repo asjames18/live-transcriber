@@ -7,8 +7,8 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 CFG = json.load(open(os.path.join(HERE, "dist.json"), encoding="utf-8"))
 BAD = [r"sk-or-v1-[A-Za-z0-9]{10,}", r"\bsk-[A-Za-z0-9]{20,}", r"ghp_[A-Za-z0-9]{20,}", r"github_pat_[A-Za-z0-9_]{20,}", r"AKIA[0-9A-Z]{16}",
        r"hf_[A-Za-z0-9]{30,}", r"xox[abp]-[A-Za-z0-9-]{10,}", r"-----BEGIN [A-Z ]*PRIVATE KEY-----",
-       r"(?i)jamesa", r"Antonio", r"Element\s?451", r"Tony, A", r"asjames18@", r"(?i)sfsc", r"(?i)southflorida", r"(?i)south florida state",
-       r"@[a-z0-9-]+\.edu\b", r"(?i)IT0" + "3230", r"(?i)grok" + "bot", r"@gmail\.com"]   # split so this file doesn't contain the strings it blocks
+       r"(?i)[A-Z0-9._%+\-]+@(?:gmail|yahoo|outlook|hotmail|proton(?:mail)?)\.(?:com|me)",
+       r"(?i)[A-Z0-9._%+\-]+@[A-Z0-9.\-]+\.edu"]
 
 ver = re.search(CFG["version_regex"], open(os.path.join(SRC, CFG["version_file"]), encoding="utf-8").read(), re.M).group(1)
 root = f"{CFG['zip_prefix']}-{ver}"

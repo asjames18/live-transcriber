@@ -5,7 +5,7 @@ Real-time, on-device speech-to-text for this PC's audio and microphone, with an 
 ![Platform](https://img.shields.io/badge/platform-Windows-0078D6?logo=windows&logoColor=white)
 ![Python](https://img.shields.io/badge/python-3.12%2B-3776AB?logo=python&logoColor=white)
 ![Speech](https://img.shields.io/badge/speech-faster--whisper-informational)
-![Status](https://img.shields.io/badge/status-private%20%7C%20active-2ea44f)
+![Status](https://img.shields.io/badge/status-public-2ea44f)
 
 ## Download and install
 
