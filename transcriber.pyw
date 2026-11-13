@@ -1,4 +1,5 @@
-# VERSION: 2026-11-05 v2 - adds the Meeting Notetaker (live structured notes via OpenRouter, local fallback)
+# VERSION: 2.1.0 (2026-11-13) - installs like a normal app (installer, data folder, speech model download)
+# 2026-11-05 v2 - adds the Meeting Notetaker (live structured notes via OpenRouter, local fallback)
 #          and Meeting mode (PC/call audio + room mic together, no screen recorder needed)
 """Live Transcriber: real-time speech-to-text for this PC's audio and microphone.
 Runs a private server on 127.0.0.1 and opens its window in Microsoft Edge app mode.
@@ -12,12 +13,38 @@ from urllib.parse import urlparse, parse_qs
 from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
 import numpy as np
 
+VERSION = "2.1.0"
 APP_DIR = os.path.dirname(os.path.abspath(__file__))
-MODELS = os.path.join(APP_DIR, "models")
-OUT_DIR = os.path.join(APP_DIR, "transcripts")
+
+
+def _installed():
+    """app\\installed.json is written by the installer (Install-LiveTranscriber.cmd); None in a plain source folder."""
+    try:
+        with open(os.path.join(APP_DIR, "installed.json"), "r", encoding="utf-8-sig") as f:
+            d = json.load(f)
+        return d if isinstance(d, dict) else {}
+    except (OSError, ValueError):
+        return None
+
+
+INSTALLED = _installed()
+# Installed: %LOCALAPPDATA%\\LiveTranscriber\\{app, data, models, venv}. Source folder: everything next to the code.
+if os.environ.get("TX_DATA_DIR"):
+    DATA_DIR = os.environ["TX_DATA_DIR"]
+elif INSTALLED is not None:
+    DATA_DIR = os.path.normpath(os.path.join(APP_DIR, INSTALLED.get("data_dir") or os.path.join("..", "data")))
+else:
+    DATA_DIR = APP_DIR
+if os.environ.get("TX_MODELS_DIR"):
+    MODELS = os.environ["TX_MODELS_DIR"]
+elif INSTALLED is not None:
+    MODELS = os.path.normpath(os.path.join(APP_DIR, INSTALLED.get("models_dir") or os.path.join("..", "models")))
+else:
+    MODELS = os.path.join(APP_DIR, "models")
+OUT_DIR = os.path.join(DATA_DIR, "transcripts")
 EXPORT_DIR = os.path.join(OUT_DIR, "exports")
-SETTINGS = os.path.join(APP_DIR, "settings.json")
-LOG = os.path.join(APP_DIR, "transcriber.log")
+SETTINGS = os.path.join(DATA_DIR, "settings.json")
+LOG = os.path.join(DATA_DIR, "transcriber.log")
 PORT = int(os.environ.get("TX_PORT", "48241"))
 NO_WINDOW = os.environ.get("TX_NO_WINDOW") == "1"
 GPU_MODEL = os.environ.get("TX_MODEL", "large-v3-turbo")   # accurate model, used on the GPU
@@ -141,11 +168,22 @@ def load_cpu(reason):
     state.update(model="ready", device="cpu", model_name=CPU_MODEL, compute="int8", model_error="")
 
 
+def model_present(name):
+    """True when a faster-whisper model is already in MODELS (Hugging Face cache layout)."""
+    return bool(glob.glob(os.path.join(MODELS, f"models--*--faster-whisper-{name}", "snapshots", "*", "model.bin")))
+
+
 def load_model():
     t = time.time()
     try:
+        offline = os.environ.get("HF_HUB_OFFLINE") == "1"
+        if offline and not model_present(CPU_MODEL) and not model_present(GPU_MODEL):
+            raise RuntimeError(f"The speech model ({CPU_MODEL}) isn't downloaded yet. Run Install-LiveTranscriber.cmd again "
+                               f"to download it (about 465 MB), or see the README.")
         if FORCE_CPU:
             load_cpu("TX_DEVICE=cpu is set")
+        elif offline and not model_present(GPU_MODEL):
+            load_cpu(f"GPU model {GPU_MODEL} isn't installed (the installer's GPU option adds it)")
         else:
             try:
                 import ctranslate2
@@ -1052,6 +1090,19 @@ def find_edge():
             p = os.path.join(base, "Microsoft", "Edge", "Application", "msedge.exe")
             if os.path.exists(p):
                 return p
+    try:  # Edge installed somewhere unusual: ask Windows (App Paths)
+        import winreg
+        for hive in (winreg.HKEY_CURRENT_USER, winreg.HKEY_LOCAL_MACHINE):
+            try:
+                with winreg.OpenKey(hive, r"Software\Microsoft\Windows\CurrentVersion\App Paths\msedge.exe") as k:
+                    p = winreg.QueryValue(k, None)
+                if p and os.path.exists(p.strip('"')):
+                    return p.strip('"')
+            except OSError:
+                pass
+    except ImportError:
+        pass
+    return None
 
 
 def open_window():
@@ -1059,7 +1110,7 @@ def open_window():
         return
     edge = find_edge()
     if edge:
-        subprocess.Popen([edge, f"--app={URL}", f"--user-data-dir={os.path.join(APP_DIR, 'window-profile')}",
+        subprocess.Popen([edge, f"--app={URL}", f"--user-data-dir={os.path.join(DATA_DIR, 'window-profile')}",
                           "--window-size=1360,860", "--no-first-run", "--no-default-browser-check"])
     else:
         webbrowser.open(URL)
@@ -1088,7 +1139,33 @@ class AppServer(ThreadingHTTPServer):
         super().server_bind()
 
 
+def self_test():
+    """--self-test: check the packages, the audio devices and the speech model without opening a window. Prints one JSON line."""
+    out = {"version": VERSION, "python": sys.version.split()[0], "data_dir": DATA_DIR, "models": MODELS, "ok": False}
+    try:
+        import faster_whisper, ctranslate2, av  # noqa: F401
+        import pyaudiowpatch  # noqa: F401
+        out["packages"] = "ok"
+        out["devices"] = device_names()
+        out["cuda_devices"] = ctranslate2.get_cuda_device_count()
+        global FORCE_CPU
+        FORCE_CPU = FORCE_CPU or "--cpu" in sys.argv
+        load_model()
+        out.update(model=state["model"], model_name=state["model_name"], device=state["device"],
+                   model_error=state["model_error"][:300], fallback=state["fallback"][:200])
+        if state["model"] == "ready":
+            segs, _ = _model[0].transcribe(np.zeros(SR, np.float32), language="en", beam_size=1)
+            list(segs)
+            out["ok"] = True
+    except Exception as e:
+        out["error"] = f"{type(e).__name__}: {str(e)[:300]}"
+    print(json.dumps(out))
+    return 0 if out["ok"] else 1
+
+
 def main():
+    if "--self-test" in sys.argv:
+        sys.exit(self_test())
     try:
         server = AppServer(("127.0.0.1", PORT), Handler)
     except OSError:

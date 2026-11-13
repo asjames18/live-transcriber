@@ -1,0 +1,4 @@
+{"zip_prefix": "LiveTranscriber-Setup", "version_file": "transcriber.pyw", "version_regex": "^VERSION = \"([^\"]+)\"",
+ "app_files": ["transcriber.pyw", "transcriber.ico", "requirements.txt", "requirements-gpu.txt", "settings.example.json"],
+ "top_files": ["Install-LiveTranscriber.cmd", "Uninstall-LiveTranscriber.cmd", "README.md"],
+ "installer_files": ["Install-LiveTranscriber.ps1", "Uninstall-LiveTranscriber.ps1", "SetupCommon.ps1"]}

@@ -3,9 +3,27 @@
 Real-time, on-device speech-to-text for this PC's audio and microphone, with an optional Meeting Notetaker.
 
 ![Platform](https://img.shields.io/badge/platform-Windows-0078D6?logo=windows&logoColor=white)
-![Python](https://img.shields.io/badge/python-3.14-3776AB?logo=python&logoColor=white)
+![Python](https://img.shields.io/badge/python-3.12%2B-3776AB?logo=python&logoColor=white)
 ![Speech](https://img.shields.io/badge/speech-faster--whisper-informational)
 ![Status](https://img.shields.io/badge/status-private%20%7C%20active-2ea44f)
+
+## Download and install
+
+Most people should grab the ready-made installer, not this source. It sets up everything the app needs:
+
+1. Download **`LiveTranscriber-Setup-<version>.zip`** from the latest release on this repository's Releases page.
+2. Open the zip and double-click **`Install-LiveTranscriber.cmd`** (it unpacks itself if you run it from inside the zip). Windows SmartScreen may warn because the installer isn't code-signed: click **More info**, then **Run anyway**.
+3. It installs, asking before anything is downloaded:
+   - Python 3.12+ (if missing, the installer asks, then installs the official python.org Python 3.13.17 for your account: SHA-256 and signature checked, no admin).
+   - The Microsoft Visual C++ 2015-2022 runtime if it's missing (official Microsoft download, signature checked; Windows asks for admin approval once).
+   - A private virtual environment in `%LOCALAPPDATA%\LiveTranscriber\venv` with the pinned packages from `requirements.txt` (about 85 MB download, about 300 MB on disk).
+   - The Whisper `small.en` model (about 465 MB) from Hugging Face into `%LOCALAPPDATA%\LiveTranscriber\models`, with progress and retries.
+   - Optional, offered when an NVIDIA GPU is present: the CUDA libraries in `requirements-gpu.txt` (about 2 GB) plus the `large-v3-turbo` model (1.55 GB).
+   - No ffmpeg needed: PyAV ships its own decoders.
+   Total: about 1 GB on disk and 3-10 minutes on a typical connection (about 5 GB with the GPU option).
+4. It adds Desktop and Start menu shortcuts and opens the app. Code goes to `%LOCALAPPDATA%\LiveTranscriber\app`, your data to `%LOCALAPPDATA%\LiveTranscriber\data`. Running it again is safe (repair or upgrade, data kept); offline or a failed download stops safely. Uninstall from the Start menu or with `Uninstall-*.cmd`.
+
+The end-user guide is [`packaging/README.md`](packaging/README.md) (it ships inside the zip). `python packaging/build_dist.py . dist` builds the zip and its `.sha256` and refuses to build if it finds keys or personal strings.
 
 ## Overview
 
@@ -32,14 +50,14 @@ Transcripts are saved under `transcripts/` (gitignored). Optional meeting notes 
 ## Requirements
 
 - Windows
-- Python 3.14
+- Python 3.12 or newer (developed on 3.14, installer uses 3.13)
 - A virtual environment with the packages in `requirements.txt`
 - A local Whisper model in `models/` (`large-v3-turbo` on GPU, `small.en` as the CPU fallback)
 - A microphone and/or a loopback audio device (via PyAudioWPatch)
 - Microsoft Edge (used to host the app window; the system browser is used as a fallback)
 - A working NVIDIA CUDA driver and the optional NVIDIA packages in `requirements.txt` (optional, for GPU transcription)
 
-## Installation
+## Running from source
 
 From this folder, create a virtual environment and install dependencies:
 
